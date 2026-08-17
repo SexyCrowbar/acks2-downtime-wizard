@@ -13,6 +13,11 @@
       "flags": {}
     }
   ],
+  "manifest": "https://github.com/SexyCrowbar/acks2-downtime-wizard/releases/latest/download/module.json",
+  "download": "https://github.com/SexyCrowbar/acks2-downtime-wizard/releases/download/0.3.0/module.zip",
+  "url": "https://github.com/SexyCrowbar/acks2-downtime-wizard",
+  "readme": "https://github.com/SexyCrowbar/acks2-downtime-wizard/blob/master/README.md",
+  "bugs": "https://github.com/SexyCrowbar/acks2-downtime-wizard/issues",
   "esmodules": [
     "scripts/main.mjs"
   ],
