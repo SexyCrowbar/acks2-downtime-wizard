@@ -116,18 +116,25 @@ Hooks.on("renderActorDirectory", (app, element) => {
 function registerChatCommand() {
   // The ACKS system exposes its own command registry; probe for it rather than
   // assume, so a system API change cannot break init.
+  const commands = game.acks?.commands;
+  if (!commands?.registerCommand) return;
+
   try {
-    game.acks?.commands?.registerCommand?.({
-      name: "/downtime",
-      module: MODULE_ID,
-      description: game.i18n.localize("DW.command.downtime"),
-      callback: () => {
+    commands.registerCommand({
+      // The registry takes `path`/`func`/`desc` and reads `path.length` without
+      // guarding it, so any other shape throws on registration rather than
+      // being ignored — and the throw is invisible behind this try/catch.
+      path: ["/downtime"],
+      // A falsy return means "not handled", and the system answers that by
+      // whispering the command's own description into chat. Say it was handled.
+      func: () => {
         openWizard();
-        return {};
-      }
+        return true;
+      },
+      desc: game.i18n.localize("DW.command.downtime")
     });
   } catch (error) {
-    console.warn(`${MODULE_ID} | could not register the /downtime command`, error);
+    console.warn(`${MODULE_ID} | could not register the /downtime chat command`, error);
   }
 }
 
