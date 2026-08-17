@@ -213,7 +213,12 @@ export async function postMarketRoll(outcome, actor = null) {
 }
 
 /**
- * Post a downtime result to chat.
+ * Post a downtime result to chat, honouring the current roll mode.
+ *
+ * The roll mode matters here as much as it does for the dice: a Judge working
+ * out a hijink's take on Private GM Roll does not expect the table to read the
+ * result. `Roll#toMessage` applies it for us in `postMarketRoll`, but a card
+ * built by hand has to ask for it, as both sibling wizards do.
  *
  * @param {object} args
  * @param {Actor|null} args.actor
@@ -224,11 +229,16 @@ export async function postMarketRoll(outcome, actor = null) {
 export async function postDowntimeCard({ actor, result, resolution, html }) {
   const rolls = (resolution?.rows ?? []).map((r) => r.roll).filter(Boolean);
 
-  return ChatMessage.create({
+  const messageData = {
     speaker: ChatMessage.getSpeaker(actor ? { actor } : {}),
     content: html,
+    style: CONST.CHAT_MESSAGE_STYLES.OTHER,
     // Attaching the Rolls makes the dice animate and keeps them auditable.
     rolls,
     flags: { [MODULE_ID]: { downtime: true, activity: result.activity } }
-  });
+  };
+
+  return ChatMessage.create(
+    ChatMessage.applyRollMode(messageData, game.settings.get("core", "rollMode"))
+  );
 }
