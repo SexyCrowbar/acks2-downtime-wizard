@@ -1,0 +1,132 @@
+{{!-- One page in the character's downtime journal. --}}
+<div class="dw-snapshot">
+  <p class="dw-snapshot-head">
+    <strong>{{activityLabel}}</strong>
+    {{#if actor}} — {{actor.name}}{{/if}}
+    <span class="dw-cite">{{pageCite}}</span>
+  </p>
+
+  <table>
+    <tbody>
+      <tr>
+        <th>{{localize "DW.results.income"}}</th>
+        <td>
+          {{dwGp result.income.gold}}gp
+          {{#if result.income.overridden}}
+            ({{localize "DW.results.overriddenFrom"}} {{dwGp result.income.computed}}gp)
+          {{/if}}
+        </td>
+      </tr>
+      {{#if result.income.monthly}}
+        <tr>
+          <th>{{localize "DW.results.maintenance"}}</th>
+          <td>{{dwGp result.income.monthly}}gp {{localize "DW.results.perMonth"}}</td>
+        </tr>
+      {{/if}}
+      {{#if isArbitrage}}
+        <tr>
+          <th>{{localize "DW.results.unitPrice"}}</th>
+          <td>{{dwGp result.figures.unitPrice}}gp {{localize "DW.results.perStone"}}</td>
+        </tr>
+        <tr>
+          <th>{{localize "DW.results.traded"}}</th>
+          <td>
+            {{dwQty result.figures.traded}}
+            ({{localize "DW.results.available"}} {{dwQty result.figures.available}})
+          </td>
+        </tr>
+        <tr>
+          <th>{{localize "DW.results.entryCost"}}</th>
+          <td>{{dwGp result.figures.entryCost}}gp — {{localize "DW.results.entryCostNote"}}</td>
+        </tr>
+      {{/if}}
+      {{#if isVenture}}
+        <tr>
+          <th>{{localize "DW.ledger.revenueTotal"}}</th>
+          <td>{{dwGp result.figures.revenue}}gp</td>
+        </tr>
+        <tr>
+          <th>{{localize "DW.ledger.expenseTotal"}}</th>
+          <td>{{dwGp result.figures.expenses}}gp</td>
+        </tr>
+      {{/if}}
+      {{#if isHijink}}
+        <tr>
+          <th>{{localize "DW.results.perpetratorLevel"}}</th>
+          <td>{{dwNum result.figures.summedLevel}}</td>
+        </tr>
+      {{/if}}
+      {{#if isSyndicate}}
+        <tr>
+          <th>{{localize "DW.ledger.tribute"}}</th>
+          <td>{{dwGp result.figures.tribute}}gp</td>
+        </tr>
+        <tr>
+          <th>{{localize "DW.results.membership"}}</th>
+          <td>
+            {{dwNum result.figures.headcount}}
+            ({{localize "DW.results.ofMax"}} {{dwNum result.figures.maxMembers}})
+          </td>
+        </tr>
+      {{/if}}
+      <tr>
+        <th>{{localize "DW.results.xp"}}</th>
+        <td>
+          {{#if result.earnsXp}}{{dwNum result.xp.earned}}{{else}}{{localize "DW.results.none"}}{{/if}}
+          — {{xpNote}}
+        </td>
+      </tr>
+      {{#if resolution}}
+        <tr>
+          <th>{{resolutionLabel}}</th>
+          <td>{{dwGp resolution.gold}}gp</td>
+        </tr>
+      {{/if}}
+    </tbody>
+  </table>
+
+  {{#if shareRows}}
+    <table class="dw-snapshot-shares">
+      <thead>
+        <tr>
+          <th>{{localize "DW.label.participantName"}}</th>
+          <th>{{localize "DW.label.role"}}</th>
+          <th>{{localize "DW.label.share"}}</th>
+          <th>{{localize "DW.results.xp"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each shareRows}}
+          <tr>
+            <td>{{this.displayName}}</td>
+            <td>{{this.roleLabel}}</td>
+            <td>{{dwGp this.shareGold}}gp</td>
+            <td>{{dwNum this.shareXp}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
+
+  {{#if isVenture}}
+    <p class="dw-note">{{localize "DW.results.unsoldNotCounted"}}</p>
+  {{/if}}
+
+  {{#if notes}}
+    <ul class="dw-snapshot-notes">
+      {{#each notes}}<li>{{this}}</li>{{/each}}
+    </ul>
+  {{/if}}
+
+  {{#if warnings}}
+    <ul class="dw-snapshot-warnings">
+      {{#each warnings}}<li>{{this}}</li>{{/each}}
+    </ul>
+  {{/if}}
+
+  <p>
+    <button type="button" class="dw-reopen" data-dw-reopen="{{recordId}}">
+      {{localize "DW.action.reopen"}}
+    </button>
+  </p>
+</div>

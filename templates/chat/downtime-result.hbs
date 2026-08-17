@@ -1,0 +1,88 @@
+{{!-- The chat card for a downtime result. --}}
+<div class="dw-card">
+  <h3>
+    {{activityLabel}}
+    {{#if recordName}}<span class="dw-note">{{recordName}}</span>{{/if}}
+  </h3>
+
+  {{#if resolution}}
+    <p class="dw-total">{{dwGp resolution.gold}}gp</p>
+    <p class="dw-note">
+      {{resolutionLabel}}
+      {{#if resolution.entered}}— {{localize "DW.results.notRolled"}}{{/if}}
+    </p>
+    {{#each resolution.rows}}
+      {{#if this.attempts}}
+        <p class="dw-note">
+          {{localize "DW.label.spellLevel"}} {{this.level}}:
+          {{this.sold}}/{{this.attempts}} {{localize "DW.results.sold"}} — {{dwGp this.gold}}gp
+          {{#if this.formula}}<span class="dw-formula">{{this.formula}}</span>{{/if}}
+        </p>
+      {{/if}}
+    {{/each}}
+    {{#unless resolution.entered}}
+      {{#each resolution.rows}}
+        {{#unless this.attempts}}
+          {{#if this.formula}}
+            <p class="dw-note"><span class="dw-formula">{{this.formula}}</span></p>
+          {{/if}}
+        {{/unless}}
+      {{/each}}
+    {{/unless}}
+  {{else}}
+    <p class="dw-total">{{dwGp result.income.gold}}gp</p>
+    <p class="dw-note">{{resultNote}}</p>
+  {{/if}}
+
+  {{#if result.income.monthly}}
+    <p class="dw-note">
+      {{localize "DW.results.maintenance"}}: {{dwGp result.income.monthly}}gp {{localize "DW.results.perMonth"}}
+    </p>
+  {{/if}}
+
+  {{#if isArbitrage}}
+    <p class="dw-note">
+      {{dwQty result.figures.traded}} × {{dwGp result.figures.unitPrice}}gp
+      {{localize "DW.results.perStone"}}
+    </p>
+    {{!-- Under a stone a day nothing changes hands, so a bare "0 traded" would
+          be true and useless. Say what the market actually offers. --}}
+    <p class="dw-note">
+      {{localize "DW.results.available"}} {{dwQty result.figures.available}}
+      ({{localize "DW.results.stoneAtImpact"}} {{dwQty result.figures.impact}})
+    </p>
+  {{/if}}
+
+  {{#if isVenture}}
+    <p class="dw-note">
+      {{localize "DW.ledger.revenueTotal"}} {{dwGp result.figures.revenue}}gp —
+      {{localize "DW.ledger.expenseTotal"}} {{dwGp result.figures.expenses}}gp
+    </p>
+  {{/if}}
+
+  {{#if isSyndicate}}
+    <p class="dw-note">
+      {{localize "DW.ledger.tribute"}} {{dwGp result.figures.tribute}}gp —
+      {{localize "DW.results.membership"}} {{dwNum result.figures.headcount}}
+    </p>
+  {{/if}}
+
+  {{#if isHijink}}
+    <p class="dw-note">
+      {{localize "DW.results.perpetratorLevel"}} {{dwNum result.figures.summedLevel}}
+    </p>
+  {{/if}}
+
+  {{#each shareRows}}
+    <p class="dw-note">
+      {{this.displayName}} ({{this.roleLabel}}): {{dwGp this.shareGold}}gp,
+      {{dwNum this.shareXp}} {{localize "DW.results.xpShort"}}
+    </p>
+  {{/each}}
+
+  <p class="dw-note">
+    {{localize "DW.results.xp"}}:
+    {{#if result.earnsXp}}{{dwNum result.xp.earned}}{{else}}{{localize "DW.results.none"}}{{/if}}
+    — {{xpNote}}
+  </p>
+</div>

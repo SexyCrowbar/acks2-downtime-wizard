@@ -1,0 +1,346 @@
+/*
+ * Scoped under .downtime-app so nothing leaks into the rest of Foundry. The two
+ * exceptions are deliberate: button.dw-reopen renders inside journal HTML and
+ * .dw-card inside a chat message, both outside the application root.
+ *
+ * Heights derive from the window, never the viewport: a 100vh calc clips the
+ * form whenever the window is shorter than the screen.
+ */
+
+.downtime-app {
+  --dw-accent: #6b4a1f;
+  --dw-rule: rgba(0, 0, 0, 0.15);
+  --dw-panel: rgba(0, 0, 0, 0.04);
+  --dw-warn: #8a5a00;
+  --dw-good: #1f6b3a;
+}
+
+.downtime-app .dw-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.downtime-app .dw-scroll,
+.downtime-app .dw-results {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Below the two-column threshold the results drop under the form. */
+@container (max-width: 640px) {
+  .downtime-app .dw-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.downtime-app fieldset {
+  border: 1px solid var(--dw-rule);
+  border-radius: 4px;
+  margin-block-end: 0.6rem;
+  padding: 0.4rem 0.6rem 0.6rem;
+}
+
+.downtime-app legend {
+  font-weight: 600;
+  padding-inline: 0.35rem;
+}
+
+.downtime-app .dw-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.downtime-app .dw-row > .form-group {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.downtime-app .dw-repeat {
+  border-block-end: 1px dashed var(--dw-rule);
+  padding-block-end: 0.35rem;
+  margin-block-end: 0.35rem;
+}
+
+.downtime-app .hint {
+  font-size: var(--font-size-12, 0.75rem);
+  opacity: 0.8;
+  margin: 0.2rem 0 0;
+}
+
+.downtime-app .dw-cite {
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* ---- tables ---- */
+
+.downtime-app .dw-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block-start: 0.4rem;
+}
+
+.downtime-app .dw-table th,
+.downtime-app .dw-table td {
+  border-block-end: 1px solid var(--dw-rule);
+  padding: 0.15rem 0.3rem;
+  text-align: left;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.downtime-app .dw-table th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.downtime-app .dw-table .dw-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.downtime-app .dw-table input[type="number"] {
+  width: 100%;
+  min-width: 3.5rem;
+}
+
+/* A row the market or the rank limit is refusing part of. */
+.downtime-app .dw-table tr.dw-capped {
+  color: var(--dw-warn);
+}
+
+.downtime-app .dw-table.dw-ledger td:first-child,
+.downtime-app .dw-table.dw-participants td:first-child {
+  width: 45%;
+}
+
+/* The running totals in the venture's ledger, which are read rather than typed. */
+.downtime-app .dw-table tr.dw-subtotal th,
+.downtime-app .dw-table tr.dw-subtotal td {
+  border-block-end-width: 2px;
+  font-weight: 600;
+}
+
+.downtime-app .dw-table.dw-participants input[type="text"],
+.downtime-app .dw-table.dw-participants select,
+.downtime-app .dw-table.dw-crew input[type="text"] {
+  width: 100%;
+  min-width: 0;
+}
+
+/* A crew row is mostly narrow numbers, so only the name should take the slack. */
+.downtime-app .dw-table.dw-crew td:first-child {
+  width: 40%;
+}
+
+.downtime-app .dw-table.dw-crew input[type="number"],
+.downtime-app .dw-table.dw-syndicate input[type="number"] {
+  min-width: 3rem;
+}
+
+.downtime-app .dw-table.dw-syndicate td:first-child {
+  width: 15%;
+}
+
+/* The price, step by step, as the book walks it. */
+.downtime-app .dw-steps {
+  margin-block-start: 0.5rem;
+}
+
+.downtime-app .dw-steps td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A field with its own die beside it. The button must not stretch. */
+.downtime-app .dw-rolled .form-fields {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.downtime-app .dw-rolled .form-fields > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.downtime-app .dw-checks {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.downtime-app .dw-checks label.checkbox {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+/* A column header does the labelling in a table, but every control still needs
+   a label of its own to hang its tooltip on. */
+.downtime-app .dw-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- results ---- */
+
+.downtime-app .dw-results {
+  background: var(--dw-panel);
+  border: 1px solid var(--dw-rule);
+  border-radius: 4px;
+  padding: 0.5rem 0.6rem;
+}
+
+.downtime-app .dw-results h3 {
+  margin: 0 0 0.4rem;
+  border-block-end: 1px solid var(--dw-rule);
+  padding-block-end: 0.2rem;
+}
+
+.downtime-app .dw-figures {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.5rem;
+  margin: 0;
+}
+
+.downtime-app .dw-figures dt {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.downtime-app .dw-figures dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.downtime-app .dw-total,
+.dw-card .dw-total {
+  font-size: 1.15em;
+  font-weight: 700;
+}
+
+.downtime-app .dw-note,
+.dw-card .dw-note {
+  display: block;
+  font-size: var(--font-size-12, 0.75rem);
+  font-weight: 400;
+  opacity: 0.8;
+  text-align: left;
+}
+
+/* The formula that was actually rolled, printed beside the result. A month of
+   spell sales is hundreds of dice — far more than Dice So Nice will animate —
+   so the formula is what shows the table that real dice were thrown. */
+.downtime-app .dw-formula,
+.dw-card .dw-formula {
+  font-family: var(--font-monospace, monospace);
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+/* An overridden figure keeps the derived one beside it, struck through, so a
+   hand-set number is never mistaken for one the rules produced. */
+.downtime-app .dw-struck {
+  text-decoration: line-through;
+  opacity: 0.6;
+  margin-inline-start: 0.35rem;
+  font-weight: 400;
+}
+
+.downtime-app .dw-flag {
+  color: var(--dw-warn);
+  font-size: var(--font-size-12, 0.75rem);
+  margin-inline-start: 0.35rem;
+}
+
+.downtime-app .dw-resolution {
+  margin-block-start: 0.6rem;
+  padding-block-start: 0.4rem;
+  border-block-start: 1px solid var(--dw-rule);
+}
+
+.downtime-app .dw-resolution h4 {
+  margin: 0 0 0.2rem;
+}
+
+.downtime-app .dw-warnings {
+  margin: 0.6rem 0 0;
+  padding-inline-start: 1.1rem;
+  color: var(--dw-warn);
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+/* Adjustments the rules made that are not faults — a market traded as a
+   smaller one, a reputation worth another point of impact. Deliberately not
+   the warning colour: a benefit rendered in amber reads as a problem. */
+.downtime-app .dw-notes {
+  margin: 0.6rem 0 0;
+  padding-inline-start: 1.1rem;
+  opacity: 0.8;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+/* ---- footer ---- */
+
+.downtime-app .dw-footer {
+  gap: 0.4rem;
+  align-items: center;
+  padding-block-start: 0.4rem;
+  border-block-start: 1px solid var(--dw-rule);
+  flex-wrap: wrap;
+}
+
+.downtime-app .dw-footer .dw-manual {
+  flex: 0 0 8rem;
+}
+
+.downtime-app .dw-icon {
+  flex: 0 0 auto;
+  width: 2rem;
+}
+
+/* ---- outside the application root ---- */
+
+button.dw-reopen {
+  width: auto;
+  padding-inline: 0.6rem;
+}
+
+.dw-card h3 {
+  margin: 0 0 0.3rem;
+}
+
+.dw-snapshot table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dw-snapshot th,
+.dw-snapshot td {
+  border-block-end: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 0.15rem 0.3rem;
+  text-align: left;
+}
+
+.dw-snapshot-shares {
+  margin-block-start: 0.5rem;
+}
+
+.dw-snapshot-notes,
+.dw-snapshot-warnings {
+  padding-inline-start: 1.1rem;
+  opacity: 0.85;
+}

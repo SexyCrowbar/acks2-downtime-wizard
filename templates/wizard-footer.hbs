@@ -1,0 +1,28 @@
+{{!-- A separate ApplicationV2 part: each part must render exactly one root. --}}
+<footer class="dw-footer flexrow">
+  {{#if shows.dice}}
+    <div class="form-group dw-manual">
+      <label for="dw-manual-total">{{localize "DW.label.manualTotal"}}</label>
+      <div class="form-fields">
+        <input type="number" name="manualTotal" id="dw-manual-total" min="0" step="1"
+               value="{{state.manualTotal}}" placeholder="{{localize "DW.placeholder.manualTotal"}}"/>
+      </div>
+    </div>
+    <button type="button" data-action="roll">
+      <i class="fa-solid fa-dice-d6"></i>
+      {{#if hasManualTotal}}{{localize "DW.action.useEntered"}}{{else}}{{localize "DW.action.roll"}}{{/if}}
+    </button>
+  {{/if}}
+
+  <button type="button" data-action="postToChat">
+    <i class="fa-solid fa-comment"></i> {{localize "DW.action.postToChat"}}
+  </button>
+
+  <button type="button" data-action="saveJournal" {{#unless canSave}}disabled{{/unless}}>
+    <i class="fa-solid fa-book"></i> {{localize "DW.action.saveJournal"}}
+  </button>
+
+  <button type="button" data-action="reset">
+    <i class="fa-solid fa-rotate-left"></i> {{localize "DW.action.reset"}}
+  </button>
+</footer>

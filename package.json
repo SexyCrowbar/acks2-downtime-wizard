@@ -1,0 +1,10 @@
+{
+  "name": "acks2-downtime-wizard",
+  "version": "0.3.0",
+  "description": "Foundry VTT module implementing the ACKS II downtime work rules",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

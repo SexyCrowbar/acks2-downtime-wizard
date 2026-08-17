@@ -1,0 +1,55 @@
+{
+  "id": "acks2-downtime-wizard",
+  "title": "ACKS2 Downtime Wizard",
+  "description": "A wizard for the ACKS II downtime work rules. Calculates what a character earns between adventures: selling spellcasting services, sustaining perpetual spells, hiring out as a specialist, plying Art/Craft, Profession or Performance, labouring, gambling, arbitrage trading, a mercantile venture's whole month, hijinks by crew or alone, and a syndicate boss's month. Shows which activities earn campaign XP and which only pay gold, divides a venture's profit between its owners and its crew and a hijink's loot among whoever got away, and files finished records in a per-character journal.",
+  "version": "0.3.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "Sexycrowbar",
+      "flags": {}
+    }
+  ],
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "styles": [
+    "styles/downtime.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "hotReload": {
+      "extensions": [
+        "css",
+        "hbs",
+        "json"
+      ],
+      "paths": [
+        "styles/downtime.css",
+        "templates",
+        "lang"
+      ]
+    }
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "acks",
+        "type": "system",
+        "compatibility": {
+          "minimum": "14.0.0"
+        }
+      }
+    ]
+  }
+}

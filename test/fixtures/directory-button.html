@@ -1,0 +1,175 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ACKS II directory button — three-way coexistence</title>
+<link rel="stylesheet" href="../../styles/downtime.css">
+<style>
+  body { font: 13px/1.5 system-ui, sans-serif; margin: 1.5rem; }
+  #host { width: 300px; border: 1px solid #999; padding: 6px; margin-block-end: 1rem; }
+  #host button { display: block; }
+  .pass { color: #1f6b3a; }
+  .fail { color: #a11; font-weight: 700; }
+  .skip { color: #8a5a00; }
+  pre { background: #f4f4f4; padding: 0.5rem; overflow-x: auto; }
+</style>
+
+<h1>Three-way directory button coexistence</h1>
+
+<p>
+  Node has no DOM, so this is the only place the button surgery can be tested.
+  The ACKS system offers <strong>two</strong> claimable header buttons and there are
+  now <strong>three</strong> wizards, so one of them must land on the unpaired
+  fallback — that is the case this fixture exists to pin down.
+</p>
+
+<p>
+  Serve the <strong>modules</strong> directory, not this module's directory, or the
+  sibling imports below will 404:
+</p>
+
+<pre>python -c "import http.server,socketserver; h=http.server.SimpleHTTPRequestHandler; h.extensions_map['.mjs']='text/javascript'; socketserver.TCPServer(('127.0.0.1',8783),h).serve_forever()"</pre>
+
+<div id="host"></div>
+<ol id="report"></ol>
+
+<script type="module">
+  const report = document.getElementById("report");
+  let total = 0;
+  let failed = 0;
+  let skipped = 0;
+
+  function check(label, condition) {
+    total++;
+    if (!condition) failed++;
+    const li = document.createElement("li");
+    li.className = condition ? "pass" : "fail";
+    li.textContent = `${condition ? "PASS" : "FAIL"} — ${label}`;
+    report.append(li);
+  }
+
+  function skip(label) {
+    skipped++;
+    const li = document.createElement("li");
+    li.className = "skip";
+    li.textContent = `SKIP — ${label}`;
+    report.append(li);
+  }
+
+  /** Rebuild the header the ACKS system produces. */
+  function buildHost() {
+    const host = document.getElementById("host");
+    host.innerHTML = "";
+
+    const actions = document.createElement("div");
+    actions.className = "header-actions";
+    actions.textContent = "Create Actor / Create Folder";
+    host.append(actions);
+
+    // The system inserts each button directly after .header-actions, so the last
+    // one inserted ends up first. Mortal Wounds leads, as it does in play.
+    for (const name of ["Tampering", "Mortal Wounds"]) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = name;
+      b.style.width = "45%";
+      actions.after(b);
+    }
+    return host;
+  }
+
+  const MODULES = [
+    { name: "downtime", cls: "dw-directory-button", path: "../../scripts/directory-button.mjs" },
+    {
+      name: "construction",
+      cls: "cw-directory-button",
+      path: "../../../acks2-construction-wizard/scripts/directory-button.mjs"
+    },
+    {
+      name: "research",
+      cls: "mrw-directory-button",
+      path: "../../../acks2-magic-research-wizard/scripts/directory-button.mjs"
+    }
+  ];
+
+  // Load every module's pure injector. Siblings may not be installed.
+  for (const mod of MODULES) {
+    try {
+      mod.inject = (await import(mod.path)).injectDirectoryButton;
+    } catch {
+      mod.inject = null;
+    }
+  }
+
+  const available = MODULES.filter((m) => m.inject);
+  const missing = MODULES.filter((m) => !m.inject);
+  for (const m of missing) skip(`${m.name} is not being served — serve the modules directory`);
+
+  /** Every ordering of the modules that are actually available. */
+  function permutations(list) {
+    if (list.length <= 1) return [list];
+    return list.flatMap((item, i) =>
+      permutations([...list.slice(0, i), ...list.slice(i + 1)]).map((rest) => [item, ...rest])
+    );
+  }
+
+  for (const order of permutations(available)) {
+    const names = order.map((m) => m.name).join(" → ");
+    const host = buildHost();
+
+    for (const mod of order) {
+      mod.inject(host, { label: mod.name, onClick: () => {} });
+      // The hook fires on every re-render; a second call must be a no-op.
+      mod.inject(host, { label: mod.name, onClick: () => {} });
+    }
+
+    for (const mod of order) {
+      const found = host.querySelectorAll(`.${mod.cls}`);
+      check(`${names}: ${mod.name} added exactly one button`, found.length === 1);
+    }
+
+    // No module may have stolen a button another had already claimed.
+    const rows = [...host.querySelectorAll(".dw-button-row, .cw-button-row, .mrw-button-row")];
+    for (const row of rows) {
+      const moduleButtons = [...row.children].filter((el) =>
+        MODULES.some((m) => el.classList?.contains(m.cls))
+      );
+      check(`${names}: a paired row holds exactly one module button`, moduleButtons.length === 1);
+    }
+
+    // The two system buttons must end up in different rows, never swallowed.
+    const systemButtons = [...host.querySelectorAll("button")].filter(
+      (b) => b.textContent === "Mortal Wounds" || b.textContent === "Tampering"
+    );
+    check(`${names}: both system buttons survive`, systemButtons.length === 2);
+    check(
+      `${names}: the system buttons are in different parents`,
+      systemButtons.length === 2 && systemButtons[0].parentElement !== systemButtons[1].parentElement
+    );
+
+    // With three modules and two claimable buttons, exactly one falls back.
+    if (order.length === 3) {
+      const unpaired = order.filter((mod) => {
+        const button = host.querySelector(`.${mod.cls}`);
+        // A paired button lives inside a wrapper row; an unpaired one does not.
+        return button && !button.parentElement.className.includes("button-row");
+      });
+      check(`${names}: exactly one module takes the unpaired fallback`, unpaired.length === 1);
+      check(
+        `${names}: the fallback button is 45% wide, like the system's own`,
+        unpaired.length === 1 && host.querySelector(`.${unpaired[0].cls}`).style.width === "45%"
+      );
+    }
+
+    // Nothing may overlap: every module button has a non-zero box.
+    for (const mod of order) {
+      const rect = host.querySelector(`.${mod.cls}`).getBoundingClientRect();
+      check(`${names}: ${mod.name}'s button has a visible box`, rect.width > 0 && rect.height > 0);
+    }
+  }
+
+  const summary = document.createElement("p");
+  summary.className = failed ? "fail" : "pass";
+  summary.textContent = `${total - failed}/${total} checks passed, ${skipped} skipped.`;
+  report.after(summary);
+
+  window.__result = { total, failed, skipped };
+</script>

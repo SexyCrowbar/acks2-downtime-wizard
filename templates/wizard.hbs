@@ -1,0 +1,976 @@
+{{!-- Exactly one root element: ApplicationV2 rejects a part with more. --}}
+<div class="dw-body">
+
+  <div class="dw-scroll">
+
+    <fieldset>
+      <legend>{{localize "DW.section.character"}}</legend>
+
+      <div class="form-group">
+        <label for="dw-actor">{{localize "DW.label.character"}}</label>
+        <div class="form-fields">
+          <select name="actorId" id="dw-actor">
+            {{selectOptions choices.actors valueAttr="value" labelAttr="label" selected=state.actorId}}
+          </select>
+        </div>
+      </div>
+      <p class="hint">{{localize "DW.hint.character"}}</p>
+
+      <div class="dw-row">
+        <div class="form-group">
+          <label for="dw-record-name">{{localize "DW.label.recordName"}}</label>
+          <div class="form-fields">
+            <input type="text" name="recordName" id="dw-record-name" value="{{state.recordName}}"
+                   placeholder="{{localize "DW.placeholder.recordName"}}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="dw-class-level">{{localize "DW.label.classLevel"}}</label>
+          <div class="form-fields">
+            <input type="number" name="character.classLevel" id="dw-class-level"
+                   min="0" max="14" step="1" value="{{state.character.classLevel}}"/>
+          </div>
+        </div>
+      </div>
+
+      {{#if actor}}
+        <div class="form-group">
+          <label class="checkbox" for="dw-level-from-actor">
+            <input type="checkbox" name="character.levelFromActor" id="dw-level-from-actor"
+                   {{checked levelLinked}}/>
+            {{localize "DW.label.levelFromActor"}}
+          </label>
+        </div>
+        {{#if levelDiffers}}
+          <p class="hint dw-level-note">
+            {{localize "DW.hint.levelOverridden"}} {{actor.name}}: {{actorLevel}}
+          </p>
+        {{/if}}
+      {{/if}}
+
+      <p class="hint">{{localize "DW.hint.classLevel"}}</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{localize "DW.section.activity"}}</legend>
+
+      <div class="form-group">
+        <label for="dw-activity">{{localize "DW.label.activity"}}</label>
+        <div class="form-fields">
+          <select name="activity" id="dw-activity">
+            {{selectOptions choices.activities valueAttr="value" labelAttr="label" selected=state.activity}}
+          </select>
+        </div>
+      </div>
+      <p class="hint">{{activityHint}} <span class="dw-cite">{{pageCite}}</span></p>
+    </fieldset>
+
+    {{#if shows.castings}}
+      <fieldset>
+        <legend>{{localize "DW.section.spellcasting"}}</legend>
+
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-magic-type">{{localize "DW.label.magicType"}}</label>
+            <div class="form-fields">
+              <select name="inputs.magicType" id="dw-magic-type">
+                {{selectOptions choices.magicTypes valueAttr="value" labelAttr="label" selected=state.inputs.magicType}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-market">{{localize "DW.label.marketClass"}}</label>
+            <div class="form-fields">
+              <select name="inputs.marketClass" id="dw-market">
+                {{selectOptions choices.markets valueAttr="value" labelAttr="label" selected=state.inputs.marketClass}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-days">{{localize "DW.label.daysWorked"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.daysWorked" id="dw-days" min="0" max="30" step="1"
+                     value="{{state.inputs.daysWorked}}"/>
+            </div>
+          </div>
+        </div>
+
+        <table class="dw-table">
+          <thead>
+            <tr>
+              <th>{{localize "DW.label.spellLevel"}}</th>
+              <th>{{localize "DW.label.castingsPerDay"}}</th>
+              <th>{{localize "DW.label.marketCap"}}</th>
+              <th>{{localize "DW.label.sellable"}}</th>
+              <th>{{localize "DW.label.fee"}}</th>
+              <th>{{localize "DW.label.grossPerDay"}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each spellRows}}
+              <tr class="{{#if this.blocked}}dw-capped{{/if}}">
+                <td>
+                  <label for="dw-castings-{{this.level}}">{{this.level}}</label>
+                </td>
+                <td>
+                  <input type="number" name="inputs.castings.{{this.level}}" id="dw-castings-{{this.level}}"
+                         min="0" step="1" value="{{lookup ../state.inputs.castings this.level}}"/>
+                </td>
+                <td class="dw-num">{{this.cap}}</td>
+                <td class="dw-num">{{this.sellable}}</td>
+                <td class="dw-num">{{dwGp this.fee}}gp</td>
+                <td class="dw-num">{{dwGp this.grossPerDay}}gp</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <p class="hint">{{localize "DW.hint.castings"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.perpetualRows}}
+      <fieldset>
+        <legend>{{localize "DW.section.perpetual"}}</legend>
+        {{#each perpetualRows}}
+          <div class="dw-row dw-repeat">
+            <div class="form-group">
+              <label for="dw-perpetual-level">{{localize "DW.label.spellLevel"}}</label>
+              <div class="form-fields">
+                <select name="inputs.perpetualRows.{{this.index}}.level" id="dw-perpetual-level" data-dtype="Number">
+                  {{selectOptions this.levels valueAttr="value" labelAttr="label" selected=this.level}}
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="dw-perpetual-count">{{localize "DW.label.count"}}</label>
+              <div class="form-fields">
+                <input type="number" name="inputs.perpetualRows.{{this.index}}.count" id="dw-perpetual-count"
+                       min="0" step="1" value="{{this.count}}"/>
+              </div>
+            </div>
+            <button type="button" class="dw-icon" data-action="removeRow"
+                    data-rows="perpetualRows" data-index="{{this.index}}"
+                    aria-label="{{localize "DW.action.remove"}}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        {{/each}}
+        <button type="button" data-action="addRow" data-rows="perpetualRows">
+          <i class="fa-solid fa-plus"></i> {{localize "DW.action.addPerpetual"}}
+        </button>
+        <p class="hint">{{localize "DW.hint.perpetual"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.specialist}}
+      <fieldset>
+        <legend>{{localize "DW.section.specialist"}}</legend>
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-specialist">{{localize "DW.label.specialist"}}</label>
+            <div class="form-fields">
+              <select name="inputs.specialistId" id="dw-specialist">
+                {{selectOptions choices.specialists valueAttr="value" labelAttr="label" selected=state.inputs.specialistId}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-grade">{{localize "DW.label.grade"}}</label>
+            <div class="form-fields">
+              <select name="inputs.gradeId" id="dw-grade">
+                {{selectOptions choices.grades valueAttr="value" labelAttr="label" selected=state.inputs.gradeId}}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-quantity">{{localize "DW.label.quantity"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.quantity" id="dw-quantity" min="0" step="1"
+                     value="{{state.inputs.quantity}}"/>
+            </div>
+          </div>
+          {{#if shows.patients}}
+            <div class="form-group">
+              <label for="dw-patients">{{localize "DW.label.patients"}}</label>
+              <div class="form-fields">
+                <input type="number" name="inputs.patients" id="dw-patients" min="0" step="1"
+                       value="{{state.inputs.patients}}"/>
+              </div>
+            </div>
+          {{/if}}
+        </div>
+        <p class="hint">{{localize "DW.hint.specialist"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.rank}}
+      <fieldset>
+        <legend>{{localize "DW.section.trade"}}</legend>
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-rank">{{localize "DW.label.rank"}}</label>
+            <div class="form-fields">
+              <select name="inputs.rank" id="dw-rank" data-dtype="Number">
+                {{selectOptions choices.ranks valueAttr="value" labelAttr="label" selected=state.inputs.rank}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-months">{{localize "DW.label.months"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.months" id="dw-months" min="0" step="1"
+                     value="{{state.inputs.months}}"/>
+            </div>
+          </div>
+        </div>
+
+        {{#if workerRows}}
+          <table class="dw-table">
+            <thead>
+              <tr>
+                <th>{{localize "DW.label.subordinates"}}</th>
+                <th>{{localize "DW.label.employed"}}</th>
+                <th>{{localize "DW.label.each"}}</th>
+                <th>{{localize "DW.label.total"}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each workerRows}}
+                <tr class="{{#if this.over}}dw-capped{{/if}}">
+                  <td><label for="{{this.id}}">{{this.label}}</label></td>
+                  <td>
+                    <input type="number" name="{{this.name}}" id="{{this.id}}" min="0" step="1"
+                           value="{{this.employed}}"/>
+                  </td>
+                  <td class="dw-num">{{dwGp this.each}}gp</td>
+                  <td class="dw-num">{{dwGp this.total}}gp</td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        {{/if}}
+        <p class="hint">{{localize "DW.hint.trade"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.months}}
+      {{#unless shows.rank}}
+        <fieldset>
+          <legend>{{localize "DW.section.labor"}}</legend>
+          <div class="form-group">
+            <label for="dw-months">{{localize "DW.label.months"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.months" id="dw-months" min="0" step="1"
+                     value="{{state.inputs.months}}"/>
+            </div>
+          </div>
+          <p class="hint">{{localize "DW.hint.labor"}}</p>
+        </fieldset>
+      {{/unless}}
+    {{/if}}
+
+    {{#if shows.merchandise}}
+      <fieldset>
+        <legend>{{localize "DW.section.market"}}</legend>
+
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-arb-market">{{localize "DW.label.marketClass"}}</label>
+            <div class="form-fields">
+              <select name="inputs.marketClass" id="dw-arb-market">
+                {{selectOptions choices.markets valueAttr="value" labelAttr="label" selected=state.inputs.marketClass}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-cargo">{{localize "DW.label.cargoCapacity"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.cargoCapacity" id="dw-cargo" min="0" step="1"
+                     value="{{state.inputs.cargoCapacity}}"/>
+            </div>
+          </div>
+          {{#if shows.urbanFamilies}}
+            <div class="form-group">
+              <label for="dw-families">{{localize "DW.label.urbanFamilies"}}</label>
+              <div class="form-fields">
+                <input type="number" name="inputs.urbanFamilies" id="dw-families" min="0" step="1"
+                       value="{{state.inputs.urbanFamilies}}"/>
+              </div>
+            </div>
+          {{/if}}
+          <div class="form-group">
+            <label for="dw-party">{{localize "DW.label.partySize"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.partySize" id="dw-party" min="1" step="1"
+                     value="{{state.inputs.partySize}}"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="dw-row dw-checks">
+          <label class="checkbox" for="dw-network">
+            <input type="checkbox" name="inputs.mercantileNetwork" id="dw-network"
+                   {{checked state.inputs.mercantileNetwork}}/>
+            {{localize "DW.label.mercantileNetwork"}}
+          </label>
+          <label class="checkbox" for="dw-rulers">
+            <input type="checkbox" name="inputs.rulersPrivilege" id="dw-rulers"
+                   {{checked state.inputs.rulersPrivilege}}/>
+            {{localize "DW.label.rulersPrivilege"}}
+          </label>
+        </div>
+
+        <p class="hint">{{localize "DW.hint.market"}}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{localize "DW.section.merchandise"}}</legend>
+
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-merchandise">{{localize "DW.label.merchandise"}}</label>
+            <div class="form-fields">
+              <select name="inputs.merchandiseId" id="dw-merchandise">
+                {{selectOptions choices.merchandise valueAttr="value" labelAttr="label" selected=state.inputs.merchandiseId}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-side">{{localize "DW.label.side"}}</label>
+            <div class="form-fields">
+              <select name="inputs.side" id="dw-side">
+                {{selectOptions choices.sides valueAttr="value" labelAttr="label" selected=state.inputs.side}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-demand">{{localize "DW.label.demandModifier"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.demandModifier" id="dw-demand" min="-6" max="6" step="1"
+                     value="{{state.inputs.demandModifier}}"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-season">{{localize "DW.label.season"}}</label>
+            <div class="form-fields">
+              <select name="inputs.season" id="dw-season">
+                {{selectOptions choices.seasons valueAttr="value" labelAttr="label" selected=state.inputs.season}}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="dw-row dw-checks">
+          <label class="checkbox" for="dw-steady">
+            <input type="checkbox" name="inputs.steadyRoute" id="dw-steady"
+                   {{checked state.inputs.steadyRoute}}/>
+            {{localize "DW.label.steadyRoute"}}
+          </label>
+          <div class="form-group">
+            <label for="dw-exhaustion">{{localize "DW.label.exhaustionSteps"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.exhaustionSteps" id="dw-exhaustion" min="0" step="1"
+                     value="{{state.inputs.exhaustionSteps}}"/>
+            </div>
+          </div>
+        </div>
+
+        <p class="hint">{{localize "DW.hint.merchandise"}}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{localize "DW.section.price"}}</legend>
+
+        <div class="dw-row">
+          <div class="form-group dw-rolled">
+            <label for="dw-price-roll">{{localize "DW.label.priceRoll"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.priceRoll" id="dw-price-roll" min="-6" max="6" step="1"
+                     value="{{state.inputs.priceRoll}}"/>
+              <button type="button" class="dw-icon" data-action="rollField" data-field="priceRoll"
+                      aria-label="{{localize "DW.action.rollPrice"}}">
+                <i class="fa-solid fa-dice-d6"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group dw-rolled">
+            <label for="dw-negotiation">{{localize "DW.label.negotiation"}}</label>
+            <div class="form-fields">
+              <select name="inputs.negotiation" id="dw-negotiation">
+                {{selectOptions choices.negotiations valueAttr="value" labelAttr="label" selected=state.inputs.negotiation}}
+              </select>
+              <button type="button" class="dw-icon" data-action="rollField" data-field="negotiation"
+                      aria-label="{{localize "DW.action.rollNegotiation"}}">
+                <i class="fa-solid fa-dice-d6"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group dw-rolled">
+            <label for="dw-assessment">{{localize "DW.label.assessment"}}</label>
+            <div class="form-fields">
+              <select name="inputs.assessment" id="dw-assessment">
+                {{selectOptions choices.assessments valueAttr="value" labelAttr="label" selected=state.inputs.assessment}}
+              </select>
+              <button type="button" class="dw-icon" data-action="rollField" data-field="assessment"
+                      aria-label="{{localize "DW.action.rollAssessment"}}">
+                <i class="fa-solid fa-dice-d6"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-cha">{{localize "DW.label.chaMod"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.chaMod" id="dw-cha" step="1" value="{{state.inputs.chaMod}}"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-wil">{{localize "DW.label.wilMod"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.wilMod" id="dw-wil" step="1" value="{{state.inputs.wilMod}}"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-bargaining">{{localize "DW.label.bargainingRanks"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.bargainingRanks" id="dw-bargaining" min="0" step="1"
+                     value="{{state.inputs.bargainingRanks}}"/>
+            </div>
+          </div>
+          <label class="checkbox" for="dw-extra-rank">
+            <input type="checkbox" name="inputs.merchantExtraRank" id="dw-extra-rank"
+                   {{checked state.inputs.merchantExtraRank}}/>
+            {{localize "DW.label.merchantExtraRank"}}
+          </label>
+        </div>
+
+        {{#if marketRoll}}<p class="dw-note">{{marketRoll}}</p>{{/if}}
+        <p class="hint">{{localize "DW.hint.price"}}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{localize "DW.section.deal"}}</legend>
+        <div class="form-group">
+          <label for="dw-stone">{{localize "DW.label.stone"}}</label>
+          <div class="form-fields">
+            <input type="number" name="inputs.stone" id="dw-stone" min="0" step="1"
+                   value="{{state.inputs.stone}}"/>
+          </div>
+        </div>
+        <p class="hint">{{localize "DW.hint.deal"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.venture}}
+      <fieldset>
+        <legend>{{localize "DW.section.ledger"}}</legend>
+
+        <table class="dw-table dw-ledger">
+          <tbody>
+            {{#each ledger.revenue}}
+              <tr>
+                <td><label for="{{this.inputId}}">{{this.label}}</label></td>
+                <td>
+                  <input type="number" name="{{this.name}}" id="{{this.inputId}}" step="0.01"
+                         value="{{this.value}}"/>
+                </td>
+              </tr>
+            {{/each}}
+            <tr class="dw-subtotal">
+              <th>{{localize "DW.ledger.revenueTotal"}}</th>
+              <td class="dw-num">{{dwGp result.figures.revenue}}gp</td>
+            </tr>
+            {{#each ledger.expenses}}
+              <tr>
+                <td><label for="{{this.inputId}}">{{this.label}}</label></td>
+                <td>
+                  <input type="number" name="{{this.name}}" id="{{this.inputId}}" step="0.01"
+                         value="{{this.value}}"/>
+                </td>
+              </tr>
+            {{/each}}
+            <tr class="dw-subtotal">
+              <th>{{localize "DW.ledger.expenseTotal"}}</th>
+              <td class="dw-num">{{dwGp result.figures.expenses}}gp</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="form-group">
+          <label for="dw-capital">{{localize "DW.label.capital"}}</label>
+          <div class="form-fields">
+            <input type="number" name="inputs.venture.capital" id="dw-capital" min="0" step="1"
+                   value="{{state.inputs.venture.capital}}"/>
+          </div>
+        </div>
+
+        <p class="hint">{{localize "DW.hint.ledger"}}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{localize "DW.section.participants"}}</legend>
+
+        <table class="dw-table dw-participants">
+          <thead>
+            <tr>
+              <th>{{localize "DW.label.participantName"}}</th>
+              <th>{{localize "DW.label.role"}}</th>
+              <th>{{localize "DW.label.ownership"}}</th>
+              <th>{{localize "DW.label.classLevel"}}</th>
+              <th>{{localize "DW.label.isSelf"}}</th>
+              <th>{{localize "DW.label.share"}}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each participantRows}}
+              <tr class="{{#if this.share.excluded}}dw-capped{{/if}}">
+                <td>
+                  <label for="dw-participant-name" class="dw-visually-hidden">{{localize "DW.label.participantName"}}</label>
+                  <input type="text" name="inputs.ventureParticipants.{{this.index}}.name" id="dw-participant-name"
+                         value="{{this.name}}" placeholder="{{localize "DW.placeholder.participantName"}}"/>
+                </td>
+                <td>
+                  <label for="dw-participant-role" class="dw-visually-hidden">{{localize "DW.label.role"}}</label>
+                  <select name="inputs.ventureParticipants.{{this.index}}.role" id="dw-participant-role">
+                    {{selectOptions this.roles valueAttr="value" labelAttr="label" selected=this.role}}
+                  </select>
+                </td>
+                <td>
+                  <label for="dw-participant-ownership" class="dw-visually-hidden">{{localize "DW.label.ownership"}}</label>
+                  <input type="number" name="inputs.ventureParticipants.{{this.index}}.ownership"
+                         id="dw-participant-ownership" min="0" step="1" value="{{this.ownership}}"/>
+                </td>
+                <td>
+                  <label for="dw-participant-level" class="dw-visually-hidden">{{localize "DW.label.classLevel"}}</label>
+                  <input type="number" name="inputs.ventureParticipants.{{this.index}}.classLevel"
+                         id="dw-participant-level" min="0" max="14" step="1" value="{{this.classLevel}}"/>
+                </td>
+                <td class="dw-num">
+                  <input type="radio" name="inputs.selfParticipant" value="{{this.index}}"
+                         data-dtype="Number" {{checked this.isSelf}}
+                         aria-label="{{localize "DW.label.isSelf"}}"/>
+                </td>
+                <td class="dw-num">
+                  {{#if this.share}}{{dwGp this.share.share}}gp{{else}}—{{/if}}
+                  {{#if this.share.earned}}
+                    <span class="dw-note">{{dwNum this.share.earned}} {{localize "DW.results.xpShort"}}</span>
+                  {{/if}}
+                </td>
+                <td>
+                  <button type="button" class="dw-icon" data-action="removeRow"
+                          data-rows="ventureParticipants" data-index="{{this.index}}"
+                          aria-label="{{localize "DW.action.remove"}}">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+
+        <button type="button" data-action="addRow" data-rows="ventureParticipants">
+          <i class="fa-solid fa-plus"></i> {{localize "DW.action.addParticipant"}}
+        </button>
+        <p class="hint">{{localize "DW.hint.participants"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.hijink}}
+      <fieldset>
+        <legend>{{localize "DW.section.hijink"}}</legend>
+
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-hijink">{{localize "DW.label.hijink"}}</label>
+            <div class="form-fields">
+              <select name="inputs.hijinkId" id="dw-hijink">
+                {{selectOptions choices.hijinks valueAttr="value" labelAttr="label" selected=state.inputs.hijinkId}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-hijink-market">{{localize "DW.label.marketClass"}}</label>
+            <div class="form-fields">
+              <select name="inputs.marketClass" id="dw-hijink-market">
+                {{selectOptions choices.markets valueAttr="value" labelAttr="label" selected=state.inputs.marketClass}}
+              </select>
+            </div>
+          </div>
+          {{#if shows.victimLevel}}
+            <div class="form-group">
+              <label for="dw-victim">{{localize "DW.label.victimLevel"}}</label>
+              <div class="form-fields">
+                <input type="number" name="inputs.victimLevel" id="dw-victim" min="0" max="14" step="1"
+                       value="{{state.inputs.victimLevel}}"/>
+              </div>
+            </div>
+          {{/if}}
+          <label class="checkbox" for="dw-hasty">
+            <input type="checkbox" name="inputs.hasty" id="dw-hasty" {{checked state.inputs.hasty}}/>
+            {{localize "DW.label.hasty"}}
+          </label>
+        </div>
+
+        <p class="dw-note">
+          {{localize "DW.label.throwAgainst"}} {{hijinkFacts.skill}}.
+          {{#if hijinkFacts.planned}}
+            {{localize "DW.label.planning"}} {{hijinkFacts.plan}},
+            {{localize "DW.label.performing"}} {{hijinkFacts.perform}},
+            {{localize "DW.label.layingLow"}} {{hijinkFacts.layLow}}.
+          {{else}}
+            {{localize "DW.label.performing"}} {{hijinkFacts.perform}}.
+          {{/if}}
+          {{#if hijinkFacts.victimBand}}
+            {{localize "DW.label.victimBand"}} {{hijinkFacts.victimBand.from}}–{{hijinkFacts.victimBand.to}}.
+          {{/if}}
+        </p>
+
+        <table class="dw-table dw-crew">
+          <thead>
+            <tr>
+              <th>{{localize "DW.label.perpetrator"}}</th>
+              <th>{{localize "DW.label.classLevel"}}</th>
+              <th>{{localize "DW.label.cha"}}</th>
+              <th>{{localize "DW.label.succeeded"}}</th>
+              <th>{{localize "DW.label.caught"}}</th>
+              <th>{{localize "DW.label.share"}}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each crewRows}}
+              <tr class="{{#if this.share.caught}}dw-capped{{/if}}">
+                <td>
+                  <label for="dw-crew-name" class="dw-visually-hidden">{{localize "DW.label.perpetrator"}}</label>
+                  <input type="text" name="inputs.crew.{{this.index}}.name" id="dw-crew-name"
+                         value="{{this.name}}" placeholder="{{localize "DW.placeholder.perpetrator"}}"/>
+                  {{#if this.isHoncho}}<span class="dw-flag">{{localize "DW.label.honcho"}}</span>{{/if}}
+                </td>
+                <td>
+                  <label for="dw-crew-level" class="dw-visually-hidden">{{localize "DW.label.classLevel"}}</label>
+                  <input type="number" name="inputs.crew.{{this.index}}.classLevel" id="dw-crew-level"
+                         min="0" max="14" step="1" value="{{this.classLevel}}"/>
+                </td>
+                <td>
+                  <label for="dw-crew-cha" class="dw-visually-hidden">{{localize "DW.label.cha"}}</label>
+                  <input type="number" name="inputs.crew.{{this.index}}.cha" id="dw-crew-cha"
+                         min="3" max="18" step="1" value="{{this.cha}}"/>
+                </td>
+                <td class="dw-num">
+                  <label for="dw-crew-succeeded" class="dw-visually-hidden">{{localize "DW.label.succeeded"}}</label>
+                  <input type="checkbox" name="inputs.crew.{{this.index}}.succeeded" id="dw-crew-succeeded"
+                         {{checked this.succeeded}}/>
+                </td>
+                <td class="dw-num">
+                  <label for="dw-crew-caught" class="dw-visually-hidden">{{localize "DW.label.caught"}}</label>
+                  <input type="checkbox" name="inputs.crew.{{this.index}}.caught" id="dw-crew-caught"
+                         {{checked this.caught}}/>
+                </td>
+                <td class="dw-num">
+                  {{#if this.share}}{{dwGp this.share.gold}}gp{{else}}—{{/if}}
+                  {{#if this.share.xp}}
+                    <span class="dw-note">{{dwNum this.share.xp}} {{localize "DW.results.xpShort"}}</span>
+                  {{/if}}
+                </td>
+                <td>
+                  <button type="button" class="dw-icon" data-action="removeRow"
+                          data-rows="crew" data-index="{{this.index}}"
+                          aria-label="{{localize "DW.action.remove"}}">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+
+        <button type="button" data-action="addRow" data-rows="crew">
+          <i class="fa-solid fa-plus"></i> {{localize "DW.action.addPerpetrator"}}
+        </button>
+        <p class="hint">{{localize "DW.hint.hijink"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.syndicate}}
+      <fieldset>
+        <legend>{{localize "DW.section.syndicate"}}</legend>
+
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-syn-market">{{localize "DW.label.marketClass"}}</label>
+            <div class="form-fields">
+              <select name="inputs.marketClass" id="dw-syn-market">
+                {{selectOptions choices.markets valueAttr="value" labelAttr="label" selected=state.inputs.marketClass}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-hideout">{{localize "DW.label.hideoutValue"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.syndicate.hideoutValue" id="dw-hideout" min="0" step="1000"
+                     value="{{state.inputs.syndicate.hideoutValue}}"/>
+            </div>
+          </div>
+        </div>
+
+        <table class="dw-table dw-syndicate">
+          <thead>
+            <tr>
+              <th>{{localize "DW.label.memberLevel"}}</th>
+              <th>{{localize "DW.label.members"}}</th>
+              <th>{{localize "DW.label.ordered"}}</th>
+              <th>{{localize "DW.label.tribute"}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each syndicateRows.members}}
+              <tr class="{{#if this.capped}}dw-capped{{/if}}">
+                <td><label for="{{this.memberId}}">{{this.level}}</label></td>
+                <td>
+                  <input type="number" name="{{this.memberName}}" id="{{this.memberId}}" min="0" step="1"
+                         value="{{this.count}}"/>
+                </td>
+                <td>
+                  <label for="{{this.assignedId}}" class="dw-visually-hidden">{{localize "DW.label.ordered"}}</label>
+                  <input type="number" name="{{this.assignedName}}" id="{{this.assignedId}}" min="0" step="1"
+                         value="{{this.assigned}}"/>
+                </td>
+                <td class="dw-num">{{dwGp this.tribute}}gp</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <p class="hint">{{localize "DW.hint.syndicateMembers"}}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{localize "DW.section.syndicateLedger"}}</legend>
+
+        <table class="dw-table dw-ledger">
+          <tbody>
+            <tr>
+              <td>{{localize "DW.ledger.tribute"}}</td>
+              <td class="dw-num">{{dwGp result.figures.tribute}}gp</td>
+            </tr>
+            {{#each syndicateRows.revenue}}
+              <tr>
+                <td><label for="{{this.inputId}}">{{this.label}}</label></td>
+                <td>
+                  <input type="number" name="{{this.name}}" id="{{this.inputId}}" step="0.01" value="{{this.value}}"/>
+                </td>
+              </tr>
+            {{/each}}
+            <tr class="dw-subtotal">
+              <th>{{localize "DW.ledger.revenueTotal"}}</th>
+              <td class="dw-num">{{dwGp result.figures.revenue}}gp</td>
+            </tr>
+            <tr>
+              <td>{{localize "DW.ledger.wages"}}</td>
+              <td class="dw-num">{{dwGp result.figures.assignmentCost}}gp</td>
+            </tr>
+            {{#each syndicateRows.expenses}}
+              <tr>
+                <td><label for="{{this.inputId}}">{{this.label}}</label></td>
+                <td>
+                  <input type="number" name="{{this.name}}" id="{{this.inputId}}" step="0.01" value="{{this.value}}"/>
+                </td>
+              </tr>
+            {{/each}}
+            <tr class="dw-subtotal">
+              <th>{{localize "DW.ledger.expenseTotal"}}</th>
+              <td class="dw-num">{{dwGp result.figures.expenses}}gp</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint">{{localize "DW.hint.syndicateLedger"}}</p>
+      </fieldset>
+    {{/if}}
+
+    {{#if shows.ranks}}
+      <fieldset>
+        <legend>{{localize "DW.section.gambling"}}</legend>
+        <div class="dw-row">
+          <div class="form-group">
+            <label for="dw-ranks">{{localize "DW.label.ranks"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.ranks" id="dw-ranks" min="0" step="1"
+                     value="{{state.inputs.ranks}}"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dw-weeks">{{localize "DW.label.weeks"}}</label>
+            <div class="form-fields">
+              <input type="number" name="inputs.weeks" id="dw-weeks" min="0" step="1"
+                     value="{{state.inputs.weeks}}"/>
+            </div>
+          </div>
+        </div>
+        <p class="hint">{{localize "DW.hint.gambling"}}</p>
+      </fieldset>
+    {{/if}}
+
+    <details class="dw-override-set" {{#if overridesOpen}}open{{/if}}>
+      <summary>
+        {{localize "DW.section.overrides"}}
+        {{#if anyOverrideActive}}<span class="dw-flag">{{localize "DW.label.active"}}</span>{{/if}}
+      </summary>
+      <div class="form-group">
+        <label for="dw-ov-gold">{{localize "DW.label.overrideGold"}}</label>
+        <div class="form-fields">
+          <input type="number" name="overrides.gold" id="dw-ov-gold" min="0" step="1"
+                 value="{{state.overrides.gold}}" placeholder="{{result.income.computed}}"/>
+        </div>
+      </div>
+      <p class="hint">{{localize "DW.hint.overrides"}}</p>
+    </details>
+
+  </div>
+
+  <aside class="dw-results">
+    <h3>{{activityLabel}}</h3>
+
+    <dl class="dw-figures">
+      <dt>{{localize "DW.results.income"}}</dt>
+      <dd class="dw-total">
+        {{dwGp result.income.gold}}gp
+        {{#if result.income.overridden}}
+          <span class="dw-struck" data-tooltip="{{overrideTooltip}}">{{dwGp result.income.computed}}gp</span>
+        {{/if}}
+      </dd>
+
+      {{#if result.income.monthly}}
+        <dt>{{localize "DW.results.maintenance"}}</dt>
+        <dd>{{dwGp result.income.monthly}}gp {{localize "DW.results.perMonth"}}</dd>
+      {{/if}}
+
+      {{#if result.figures.grossPerDay}}
+        <dt>{{localize "DW.results.grossPerDay"}}</dt>
+        <dd>{{dwGp result.figures.grossPerDay}}gp</dd>
+        <dt>{{localize "DW.results.expectedPerDay"}}</dt>
+        <dd>{{dwGp result.figures.expectedPerDay}}gp</dd>
+      {{/if}}
+
+      {{#if result.figures.perMonth}}
+        <dt>{{localize "DW.results.perMonthEarned"}}</dt>
+        <dd>{{dwGp result.figures.perMonth}}gp</dd>
+      {{/if}}
+
+      {{#if shows.merchandise}}
+        <dt>{{localize "DW.results.unitPrice"}}</dt>
+        <dd>
+          {{dwGp result.figures.unitPrice}}gp
+          <span class="dw-note">{{localize "DW.results.perStone"}}</span>
+        </dd>
+
+        <dt>{{localize "DW.results.available"}}</dt>
+        <dd>
+          {{dwQty result.figures.available}}
+          <span class="dw-note">{{localize "DW.results.stoneAtImpact"}} {{dwQty result.figures.impact}}</span>
+        </dd>
+
+        <dt>{{localize "DW.results.traded"}}</dt>
+        <dd>{{dwQty result.figures.traded}}</dd>
+
+        <dt>{{localize "DW.results.entryCost"}}</dt>
+        <dd>
+          {{dwGp result.figures.entryCost}}gp
+          <span class="dw-note">{{localize "DW.results.entryCostNote"}}</span>
+        </dd>
+      {{/if}}
+
+      {{#if shows.hijink}}
+        <dt>{{localize "DW.results.perpetratorLevel"}}</dt>
+        <dd>
+          {{dwNum result.figures.summedLevel}}
+          {{#if result.figures.sizePenalty}}
+            <span class="dw-note">−{{dwNum result.figures.sizePenalty}} {{localize "DW.results.toEveryThrow"}}</span>
+          {{/if}}
+        </dd>
+      {{/if}}
+
+      {{#if shows.syndicate}}
+        <dt>{{localize "DW.ledger.tribute"}}</dt>
+        <dd>{{dwGp result.figures.tribute}}gp</dd>
+        <dt>{{localize "DW.results.membership"}}</dt>
+        <dd>
+          {{dwNum result.figures.headcount}}
+          <span class="dw-note">{{localize "DW.results.ofMax"}} {{dwNum result.figures.maxMembers}}</span>
+        </dd>
+      {{/if}}
+
+      {{#if shows.venture}}
+        <dt>{{localize "DW.ledger.revenueTotal"}}</dt>
+        <dd>{{dwGp result.figures.revenue}}gp</dd>
+        <dt>{{localize "DW.ledger.expenseTotal"}}</dt>
+        <dd>{{dwGp result.figures.expenses}}gp</dd>
+        {{#if result.figures.returnPct}}
+          <dt>{{localize "DW.results.return"}}</dt>
+          <dd>{{dwQty result.figures.returnPct}}% <span class="dw-note">{{localize "DW.results.perMonth"}}</span></dd>
+        {{/if}}
+      {{/if}}
+
+      <dt>{{localize "DW.results.xp"}}</dt>
+      <dd>
+        {{#if result.earnsXp}}{{dwNum result.xp.earned}}{{else}}—{{/if}}
+        <span class="dw-note">{{xpNote}}</span>
+      </dd>
+    </dl>
+
+    {{#if priceRows}}
+      <table class="dw-table dw-steps">
+        <tbody>
+          <tr>
+            <td>{{localize "DW.step.base"}}</td>
+            <td class="dw-num">{{dwGp result.figures.basePrice}}gp</td>
+          </tr>
+          {{#each priceRows}}
+            <tr>
+              <td>{{this.label}}</td>
+              <td class="dw-num">{{this.signed}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
+
+    {{#if shows.venture}}
+      <p class="dw-note">{{localize "DW.results.unsoldNotCounted"}}</p>
+    {{/if}}
+
+    {{#if lastResolution}}
+      <div class="dw-resolution">
+        <h4>{{resolutionLabel}}</h4>
+        <p class="dw-total">{{dwGp lastResolution.gold}}gp</p>
+        {{#each lastResolution.rows}}
+          {{#if this.attempts}}
+            <p class="dw-note">
+              {{localize "DW.results.soldOf"}} {{this.sold}}/{{this.attempts}}
+              ({{localize "DW.label.spellLevel"}} {{this.level}}) — {{dwGp this.gold}}gp
+            </p>
+          {{/if}}
+          {{#if this.formula}}
+            <p class="dw-note"><span class="dw-formula">{{this.formula}}</span></p>
+          {{/if}}
+        {{/each}}
+      </div>
+    {{/if}}
+
+    {{#if notes}}
+      <ul class="dw-notes">
+        {{#each notes}}<li>{{this}}</li>{{/each}}
+      </ul>
+    {{/if}}
+
+    {{#if warnings}}
+      <ul class="dw-warnings">
+        {{#each warnings}}<li>{{this}}</li>{{/each}}
+      </ul>
+    {{/if}}
+  </aside>
+
+</div>
